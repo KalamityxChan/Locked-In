@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>My Growth Blueprint</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Lora',serif;-webkit-font-smoothing:antialiased;}
+button{transition:all 0.2s;cursor:pointer;}
+input,textarea{font-family:'Lora',serif!important;outline:none;}
+::-webkit-scrollbar{width:6px;}
+@media print{
+  body>*{display:none!important;}
+  #planner-root{display:block!important;position:fixed;inset:0;overflow:visible;}
+  #planner-no-print{display:none!important;}
+  @page{margin:0.5cm;size:A4;}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const THEMES={
+  woman:{bg:"#FDF8F3",bgCard:"#FFFCF9",bgMuted:"#F9F2EA",border:"#EBD9C8",borderSoft:"#F2E4D5",
+    textDark:"#3D2C1E",textMid:"#7C6354",textSoft:"#A8907E",textFaint:"#C9B5A3",
+    accent:"#E8A598",accentAlt:"#D4A5C9",
+    grad:"linear-gradient(135deg,#E8A598,#D4A5C9)",
+    gradAlt:"linear-gradient(135deg,#8FBD9E,#9ABBE0)",
+    band:"linear-gradient(90deg,#E8A598,#E8BF82,#8FBD9E,#9ABBE0,#D4A5C9,#F0A896,#E8A598)",
+    nameInput:"What's your name, lovely? ✦",beginBtn:"Begin my blueprint ✦",
+    tagline:"🌸 YOUR PERSONAL GROWTH BLUEPRINT 🌸",
+    headline1:"Who are you",headline2:"becoming?",
+    subtext:"Most people spend more time planning a vacation than planning their own life. This is your chance to change that — on your terms, in the areas that truly matter to you.",
+    subtext2:"Pick your areas. Add as many goals as you want. No mandatory sections. No pressure, only possibility.",
+    planTitle:"Your areas of growth 🌿",
+    planSub:"These are possibilities, not obligations. Open any area that calls to you, add as many goals as you like, and leave the rest.",
+    commitment:"Growth doesn't happen in bursts of motivation. It happens in the quiet, gentle moments when you show up to your habit even when you don't feel like it. That's where the magic lives.",
+    commitQuote:"“The person you’re becoming is built one beautiful day at a time.” 🌿",
+    blueprintBadge:"🌸 BLUEPRINT COMPLETE 🌸",
+    blueprintSub:"Read this every morning. This is the version of you that’s being built. 🌿",
+    plannerBadge:"🌸 DAILY GROWTH PLANNER",
+    plannerFooter:"“The person you’re becoming is built one beautiful day at a time.” 🌿",
+    deeperNudge:"↑ Go a little deeper — surface answers lead to surface commitment 🌸",
+    visionTitle:"Your Vision Board",
+    visionSub:"Everything you’re building. Revisit this daily — this is who you’re becoming. 🌸",
+    genderEmoji:"🌸"},
+  man:{bg:"#F4F1EC",bgCard:"#FAFAF7",bgMuted:"#EDEAE3",border:"#D4CCC0",borderSoft:"#DDD8CF",
+    textDark:"#1E2822",textMid:"#4A5248",textSoft:"#6E7A6A",textFaint:"#9AA497",
+    accent:"#4A7C59",accentAlt:"#8A6840",
+    grad:"linear-gradient(135deg,#4A7C59,#2D5A3D)",
+    gradAlt:"linear-gradient(135deg,#8A6840,#5C4420)",
+    band:"linear-gradient(90deg,#4A7C59,#8A6840,#3D6B8A,#5C4A7A,#4A7C59)",
+    nameInput:"What's your name? ✦",beginBtn:"Build my blueprint ✦",
+    tagline:"⚡ YOUR PERSONAL GROWTH BLUEPRINT",
+    headline1:"Who are you",headline2:"building?",
+    subtext:"Most men spend more time planning a holiday than planning who they want to become. This is your space to change that — clearly, honestly, on your terms.",
+    subtext2:"Pick your areas. Set real goals. No fluff, no pressure — just a clear plan built around who you actually want to be.",
+    planTitle:"Your growth areas",
+    planSub:"Open the areas that matter to you. Skip the rest. This is your plan — not a checklist.",
+    commitment:"Motivation fades. Systems stick. The gap between who you are now and who you want to be is closed by one thing: showing up consistently, even when you don't feel like it.",
+    commitQuote:"“We are what we repeatedly do. Excellence, then, is not an act, but a habit.” — Aristotle",
+    blueprintBadge:"⚡ BLUEPRINT COMPLETE",
+    blueprintSub:"This is your plan. Read it, own it, execute it. 💪",
+    plannerBadge:"⚡ DAILY GROWTH PLANNER",
+    plannerFooter:"“We are what we repeatedly do. Excellence is not an act, but a habit.” — Aristotle",
+    deeperNudge:"↑ Push further — a strong why is the foundation of lasting change",
+    visionTitle:"Your Blueprint",
+    visionSub:"Every goal. Every habit. Every reason it matters. This is what you’re building. ⚡",
+    genderEmoji:"⚡"}
+};
+
+const CAT_COLORS={
+  career:{main:"#E8A598",bg:"#FDF0EE",text:"#C4736A"},
+  health:{main:"#8FBD9E",bg:"#EEF6F1",text:"#4D8A62"},
+  mind:{main:"#9ABBE0",bg:"#EEF4FB",text:"#4A7FAD"},
+  relationships:{main:"#D4A5C9",bg:"#F8F0F6",text:"#9C5F8E"},
+  finance:{main:"#C4A882",bg:"#F7F1E8",text:"#8C6D3F"},
+  mindset:{main:"#E8BF82",bg:"#FBF4E6",text:"#B07D28"},
+  hobbies:{main:"#F0A896",bg:"#FEF1EE",text:"#C45C48"},
+  custom:{main:"#B8B4D4",bg:"#F3F2F9",text:"#5C5888"}
+};
+const CAT_COLORS_MAN={
+  career:{main:"#4A7C59",bg:"#EBF3EE",text:"#2D5A3D"},
+  health:{main:"#3D6B8A",bg:"#E8F0F6",text:"#1E4A6B"},
+  mind:{main:"#5C4A7A",bg:"#EEE9F5",text:"#3A2856"},
+  relationships:{main:"#8A6840",bg:"#F5EFE6",text:"#5C4420"},
+  finance:{main:"#6B7A3D",bg:"#EFF3E8",text:"#3D5420"},
+  mindset:{main:"#7A4A4A",bg:"#F5EEEE",text:"#562828"},
+  hobbies:{main:"#3D7A6B",bg:"#E8F3F0",text:"#1E5648"},
+  custom:{main:"#6B6B8A",bg:"#EEEEF5",text:"#404060"}
+};
+
+const QUOTES=[
+  {text:"It's not a sprint — it's a marathon.",author:"Ancient wisdom"},
+  {text:"Comparison is the thief of joy.",author:"Theodore Roosevelt"},
+  {text:"You don't rise to the level of your goals. You fall to the level of your systems.",author:"James Clear"},
+  {text:"Small daily improvements over time lead to stunning results.",author:"Robin Sharma"},
+  {text:"The secret of getting ahead is getting started.",author:"Mark Twain"},
+  {text:"A year from now you'll wish you had started today.",author:"Karen Lamb"},
+  {text:"Success is the sum of small efforts repeated day in and day out.",author:"Robert Collier"},
+  {text:"Discipline is choosing between what you want now and what you want most.",author:"Abraham Lincoln"},
+  {text:"Fall in love with the process and the results will come.",author:"Eric Thomas"},
+  {text:"Stop waiting for the right moment. Create it.",author:"Unknown"},
+  {text:"Don't count the days — make the days count.",author:"Muhammad Ali"},
+  {text:"Every expert was once a beginner.",author:"Helen Hayes"},
+  {text:"We are what we repeatedly do. Excellence is not an act, but a habit.",author:"Aristotle"},
+  {text:"The only way to do great work is to love what you do.",author:"Steve Jobs"}
+];
+
+const TIMELINE_OPTIONS=["4 weeks","8 weeks","12 weeks","6 months","1 year"];
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+const CATEGORIES=[
+  {id:"career",icon:"🌿",label:"Career & Skills",
+   description:"Professional growth, job changes, skill development, side businesses.",
+   promptQuestions:[
+     "Where do you want to be professionally in 12 weeks? In 3 years?",
+     "What's the one skill gap holding you back the most right now?",
+     "If money weren't a factor, what work would you wake up excited to do?"
+   ],
+   goalExamples:[
+     {goal:"Become a junior software developer",habit:"Code or study on freeCodeCamp for 1.5 hrs",frequency:"Daily"},
+     {goal:"Get promoted to senior level",habit:"Lead one initiative or share an insight in a team meeting",frequency:"Weekly"},
+     {goal:"Build a freelance client base",habit:"Send 2 outreach messages or work on portfolio",frequency:"Daily"},
+     {goal:"Learn data analysis / Excel",habit:"Complete one lesson on a learning platform",frequency:"Daily"}
+   ]},
+  {id:"health",icon:"🌸",label:"Health & Body",
+   description:"Fitness, weight, nutrition, sleep, energy levels.",
+   promptQuestions:[
+     "What does 'healthy' actually look like for you — not what society says, but what YOU want to feel like?",
+     "What's one physical habit you've always told yourself you'd start 'someday'?",
+     "Is your current energy level supporting the life you want to live?"
+   ],
+   goalExamples:[
+     {goal:"Lose 20 lbs and feel energetic",habit:"30-minute walk after lunch or dinner",frequency:"Daily"},
+     {goal:"Run a 5K without stopping",habit:"Couch-to-5K training run (25–30 mins)",frequency:"3x per week"},
+     {goal:"Build noticeable muscle",habit:"30-minute strength workout",frequency:"4x per week"},
+     {goal:"Fix my sleep schedule",habit:"No screens 45 mins before bed + write tomorrow's 3 priorities",frequency:"Nightly"},
+     {goal:"Drink more water",habit:"Fill a 1L bottle at the start of each day and finish it",frequency:"Daily"}
+   ]},
+  {id:"mind",icon:"📚",label:"Mind & Learning",
+   description:"Reading, languages, intellectual curiosity, writing, studying.",
+   promptQuestions:[
+     "What subject, if you mastered it, would change the most about how you see the world?",
+     "When was the last time you learned something that genuinely excited you?",
+     "Are you growing intellectually, or consuming content passively without retaining anything?"
+   ],
+   goalExamples:[
+     {goal:"Read 24 books this year",habit:"Read for 20 minutes before bed",frequency:"Daily"},
+     {goal:"Learn Spanish (or any language)",habit:"30-min podcast in target language + 10 mins Duolingo",frequency:"Daily"},
+     {goal:"Understand personal finance",habit:"Study one concept or listen to a finance podcast",frequency:"Daily"},
+     {goal:"Start a journalling practice",habit:"Write 200–300 words — thoughts, reflections, ideas",frequency:"Daily"}
+   ]},
+  {id:"relationships",icon:"🤍",label:"Relationships",
+   description:"Romantic partnerships, friendships, family bonds, social confidence.",
+   promptQuestions:[
+     "Which relationships in your life are you taking for granted right now?",
+     "Do the people closest to you know how important they are to you?",
+     "Is there a relationship you've been meaning to repair or invest more in?"
+   ],
+   goalExamples:[
+     {goal:"Be more emotionally present with my partner",habit:"Phones away from 7–9pm — fully present each evening",frequency:"Daily"},
+     {goal:"Rebuild relationship with a parent or sibling",habit:"Schedule one phone call or in-person visit",frequency:"Weekly"},
+     {goal:"Widen my social circle",habit:"Attend one event or start one meaningful new conversation",frequency:"Weekly"},
+     {goal:"Be a better friend",habit:"Send one genuine, thoughtful check-in to someone you care about",frequency:"Daily"}
+   ]},
+  {id:"finance",icon:"✨",label:"Money & Finance",
+   description:"Debt, savings, investing, budgeting, income growth.",
+   promptQuestions:[
+     "What would financial freedom look like for you — not a number, but a feeling or lifestyle?",
+     "What's one financial decision you keep avoiding that you know you should address?",
+     "Are you building wealth, or just managing survival right now?"
+   ],
+   goalExamples:[
+     {goal:"Pay off £/$ 10k in debt in 12 months",habit:"Log every expense and review budget (10 mins)",frequency:"Nightly"},
+     {goal:"Build a 6-month emergency fund",habit:"Auto-transfer a fixed amount to savings on payday",frequency:"Monthly"},
+     {goal:"Start investing consistently",habit:"Read one article or chapter on investing fundamentals",frequency:"Daily"},
+     {goal:"Create a side income stream",habit:"Spend 1 hour on a side project or business idea",frequency:"Daily"}
+   ]},
+  {id:"mindset",icon:"🌙",label:"Mindset & Inner Life",
+   description:"Confidence, anxiety, self-sabotage, meditation, gratitude, resilience.",
+   promptQuestions:[
+     "What limiting belief is quietly running your decisions right now?",
+     "If you were 10% braver, what would you do differently tomorrow?",
+     "What does the best version of you look like — and what is the real gap between that person and you today?"
+   ],
+   goalExamples:[
+     {goal:"Reduce anxiety and be more present",habit:"10-minute morning meditation or breathwork",frequency:"Daily"},
+     {goal:"Stop self-sabotaging my own progress",habit:"Evening journal: what did I do today, what story did I tell to avoid it?",frequency:"Nightly"},
+     {goal:"Build real self-confidence",habit:"Do one small uncomfortable thing on purpose",frequency:"Daily"},
+     {goal:"Develop a gratitude practice",habit:"Write 3 specific things you're grateful for (not generic)",frequency:"Nightly"}
+   ]},
+  {id:"hobbies",icon:"🎨",label:"Hobbies & Creative Skills",
+   description:"Music, art, cooking, sport, crafts — anything you do for love, not money.",
+   promptQuestions:[
+     "What hobby have you been putting off because you told yourself you don't have time?",
+     "Is there a skill you secretly wish you had but felt too old or too busy to start?",
+     "What activity makes you lose track of time when you're doing it?"
+   ],
+   goalExamples:[
+     {goal:"Get fluent in bass guitar — learn 10 songs",habit:"Practise scales and learn one song section",frequency:"Daily, 30 mins"},
+     {goal:"Learn to cook 15 proper meals from scratch",habit:"Cook one new recipe from a real cookbook",frequency:"3x per week"},
+     {goal:"Build a graphic design portfolio",habit:"Work on one design concept or tutorial",frequency:"Daily, 45 mins"},
+     {goal:"Start painting or drawing",habit:"Spend 20–30 mins sketching or practising technique",frequency:"Daily"},
+     {goal:"Learn photography",habit:"Take 10 intentional shots and study one technique",frequency:"Daily"}
+   ]},
+  {id:"custom",icon:"🌼",label:"Something Else",
+   description:"Spirituality, travel, parenting, community — whatever matters to you.",
+   promptQuestions:[
+     "What area of your life feels most neglected right now, even if it doesn't have a label?",
+     "Is there something you've been wanting to work on that doesn't fit a standard category?",
+     "What would make you feel most proud of yourself 12 weeks from now?"
+   ],
+   goalExamples:[
+     {goal:"Deepen my spiritual or faith practice",habit:"Spend 15 mins in prayer, reflection or study",frequency:"Daily"},
+     {goal:"Travel somewhere new this year",habit:"Research one destination or save a fixed amount each week",frequency:"Weekly"},
+     {goal:"Volunteer regularly in my community",habit:"Commit to one session per week with a local organisation",frequency:"Weekly"}
+   ]}
+];
+
+const EXAMPLE_PEOPLE=[
+  {id:"marcus",name:"Marcus, 27",emoji:"👨🏾",location:"Birmingham",
+   tagline:"Warehouse supervisor. Quietly unhappy. Finally deciding to change that.",
+   intro:"Marcus is a 27-year-old warehouse supervisor from Birmingham. Good income, but feeling stuck — he knows he's capable of more. He's been quietly unhappy with who he's becoming, scrolling through life rather than building it. He's not in crisis. He's just decided that today is finally the day. Sound familiar?",
+   closingNote:"Marcus didn't pick 10 areas. He picked 4 real ones and was honest about why. That's the whole secret.",
+   closingQuote:"You don't need a perfect plan. You need a real one.",
+   goals:[
+     {category:"Career & Skills",catId:"career",icon:"🌿",timeline:"12 weeks",
+      goal:"Become a junior software developer within 12 months",
+      why:"I'm 27 watching people my age build things and earn twice what I do. I don't want to be a warehouse supervisor at 35. I know I'm smart enough — I just never gave myself permission to try.",
+      habit:"freeCodeCamp lesson + work on a small project feature",frequency:"Daily",duration:"1.5 hrs",
+      obstacle:"I get home tired and want the TV. Coding before dinner instead of after.",
+      rec:{label:"🌱 Sustainable Pace",color:"#8FBD9E",bgColor:"#EEF6F1",time:"1–1.5 hrs/day",message:"Marcus has an emotionally honest why — that's long-burning fuel. A 12-week window at 1.5 hrs/day is the sweet spot: real progress without burning out after a long shift. 💚"}},
+     {category:"Health & Body",catId:"health",icon:"🌸",timeline:"12 weeks",
+      goal:"Lose 15 lbs and run a 5K without stopping",
+      why:"I got winded walking up two flights of stairs at work last month. That embarrassed me. I want to feel physically capable again — not for looks, but because my body is working against me right now.",
+      habit:"Couch-to-5K run + pack lunch instead of fast food",frequency:"5x per week",duration:"30–40 mins",
+      obstacle:"I always skip morning workouts. Switching to lunchtime at the park near work.",
+      rec:{label:"🔥 Focused Sprint",color:"#E8A598",bgColor:"#FDF0EE",time:"30–45 min/day",message:"Real emotional honesty is powerful fuel. Five sessions a week at 30–40 mins will produce visible results in 12 weeks. 🌸"}},
+     {category:"Hobbies & Creative Skills",catId:"hobbies",icon:"🎨",timeline:"12 weeks",
+      goal:"Learn 10 full bass lines and jam confidently with others",
+      why:"I had a bass guitar under my bed for 3 years. I bought it at 24 saying I'd learn. I never did. I'm tired of being the person who buys things and never uses them. Music is the one thing that actually makes me feel something.",
+      habit:"30 mins bass practice — scales first, then one song section",frequency:"Daily",duration:"30 mins",
+      obstacle:"I make it feel serious and then avoid it. Treating it as fun-first, progress second.",
+      rec:{label:"⚡ Build the Habit First",color:"#E8BF82",bgColor:"#FBF4E6",time:"30 min/day",message:"30 mins daily is enough to genuinely improve while keeping it joyful. 🌼"}},
+     {category:"Relationships",catId:"relationships",icon:"🤍",timeline:"4 weeks",
+      goal:"Stop being emotionally absent with my girlfriend",
+      why:"She told me she feels like she lives with a stranger. That landed hard. I've been so checked out — scrolling my phone even when she's right there. I don't want to lose her because I was too lazy to be present.",
+      habit:"Phone in the bedroom drawer from 7–9pm every evening — no exceptions",frequency:"Daily",duration:"2 hrs presence",
+      obstacle:"The phone pull is real. Setting it to Do Not Disturb and physically removing it.",
+      rec:{label:"🧘 Take It Steady",color:"#9ABBE0",bgColor:"#EEF4FB",time:"2 hrs/day present",message:"4 weeks because this is urgent. Two hours of real presence every evening beats a grand gesture once a month. 💙"}}
+   ]},
+  {id:"daniel",name:"Daniel, 34",emoji:"👨🏻",location:"Manchester",
+   tagline:"Decent job, decent life. Realised 'decent' isn't enough anymore.",
+   intro:"Daniel is a 34-year-old project manager from Manchester. On paper, life looks fine — stable job, good friends, a flat he owns. But he hit 34 and realised he'd spent his entire 20s optimising for safety. He's never taken a real risk. He doesn't want to reach 40 still wondering what he was actually capable of.",
+   closingNote:"Daniel's goals aren't about fixing a crisis. They're about choosing ambition before it's too late to choose it.",
+   closingQuote:"Don't let the comfort of a decent life talk you out of a great one.",
+   goals:[
+     {category:"Career & Skills",catId:"career",icon:"🌿",timeline:"12 weeks",
+      goal:"Launch a side business generating £2k/month within 12 months",
+      why:"I've managed other people's projects for 10 years. I know how to build things. The only project I've never managed is my own. I'm not trying to quit my job tomorrow — I just want proof that I can build something that's mine.",
+      habit:"1 hour of business work: customer research, building, or outreach",frequency:"Daily",duration:"1 hr",
+      obstacle:"I overthink and never ship. Setting a rule: done is better than perfect, publish before I'm ready.",
+      rec:{label:"🌱 Sustainable Pace",color:"#8FBD9E",bgColor:"#EEF6F1",time:"1–1.5 hrs/day",message:"Strong why, long game. 1 hour a day over 12 weeks compounds into real progress. The overthinking trap is real — shipping imperfect work is the actual skill to build. 💚"}},
+     {category:"Mindset & Inner Life",catId:"mindset",icon:"🌙",timeline:"12 weeks",
+      goal:"Stop living in my head and actually take action on things that scare me",
+      why:"I've talked myself out of more opportunities than I can count. The internal voice that says 'wait until you're ready' has cost me years. I want to rewire that. I'm not waiting to feel confident — I'll act my way into it.",
+      habit:"One small uncomfortable action per day + evening journal: what did I avoid today and why?",frequency:"Daily",duration:"20 mins",
+      obstacle:"The journal feels cringe. But it's the only thing that's ever made me actually see my own patterns.",
+      rec:{label:"🌱 Sustainable Pace",color:"#8FBD9E",bgColor:"#EEF6F1",time:"15–20 min/day",message:"20 mins a day on this — journalling + discomfort practice — is where real identity change happens. 💚"}},
+     {category:"Health & Body",catId:"health",icon:"🌸",timeline:"12 weeks",
+      goal:"Build strength and feel physically capable — not just thin",
+      why:"I've never been into fitness for looks. But I want to feel strong. I want to carry heavy things without thinking about it. I want to walk into a room feeling physically confident. That version of me just doesn't exist yet.",
+      habit:"Strength training — 4-day programme (push/pull/legs)",frequency:"4x per week",duration:"45–50 mins",
+      obstacle:"I go 3 weeks then stop when work gets busy. Scheduling it like a meeting in my calendar — non-negotiable.",
+      rec:{label:"🔥 Focused Sprint",color:"#E8A598",bgColor:"#FDF0EE",time:"45–60 min/day",message:"4 sessions a week is sustainable for someone with a full schedule and leads to visible strength gains in 12 weeks. 🌸"}}
+   ]},
+  {id:"amara",name:"Amara, 29",emoji:"👩🏾",location:"London",
+   tagline:"High-achiever on the outside. Quietly running on empty on the inside.",
+   intro:"Amara is a 29-year-old marketing manager from London. From the outside, she looks like she has it together — good career, social life, a flat she's proud of. But privately, she's exhausted. She's been performing 'fine' for so long she's lost track of what she actually wants.",
+   closingNote:"Amara didn't need more ambition. She needed to turn some of that ambition inward — toward herself.",
+   closingQuote:"You can't pour from an empty cup. Fill yours first.",
+   goals:[
+     {category:"Mindset & Inner Life",catId:"mindset",icon:"🌙",timeline:"12 weeks",
+      goal:"Stop people-pleasing and start making decisions that are actually mine",
+      why:"I've spent my whole adult life being 'good'. Good daughter, good employee, good friend. And I'm exhausted from it. I say yes to things I don't want to do and no to things I'm actually drawn to. I want to know what I want — and then actually choose it, without guilt.",
+      habit:"Morning pages: 3 handwritten pages, stream of consciousness — no editing, no performance",frequency:"Daily",duration:"20–25 mins",
+      obstacle:"I write for an audience even in my own journal. Literally covering the page while I write so I can't reread it.",
+      rec:{label:"🌱 Sustainable Pace",color:"#8FBD9E",bgColor:"#EEF6F1",time:"15–20 min/day",message:"20 minutes of morning pages — uncensored, unperformed — is one of the most powerful self-awareness practices there is. 🌿"}},
+     {category:"Health & Body",catId:"health",icon:"🌸",timeline:"8 weeks",
+      goal:"Build a movement practice I actually enjoy — not one I punish myself with",
+      why:"I've had an on-off relationship with exercise my whole life. I sign up for things out of guilt, dread them, quit, then hate myself. I want to move my body because it feels good, not because I'm trying to fix something about it.",
+      habit:"30-min Pilates or yoga class (YouTube is fine) — no calorie counting, no tracking",frequency:"5x per week",duration:"30 mins",
+      obstacle:"I tie exercise to punishment. Choosing movement purely by 'what sounds good today' rather than what 'counts'.",
+      rec:{label:"🔥 Focused Sprint",color:"#E8A598",bgColor:"#FDF0EE",time:"30 min/day",message:"Reframing the whole relationship with movement is genuinely worth it. 8 weeks, 5 sessions a week, zero punishment — that's the experiment. 🌸"}},
+     {category:"Career & Skills",catId:"career",icon:"🌿",timeline:"6 months",
+      goal:"Transition from marketing manager to creative director within 18 months",
+      why:"I've been executing other people's vision for 6 years. I'm good at it. But I have my own aesthetic, my own ideas, and I've been making myself smaller to fit into jobs that don't ask for my full self. I'm ready to stop shrinking.",
+      habit:"Work on portfolio case studies or reach out to one person in a creative director role to learn from them",frequency:"3x per week",duration:"45 mins",
+      obstacle:"Imposter syndrome is real. But I'm putting my portfolio work in my calendar the same way I'd schedule a client meeting.",
+      rec:{label:"🌱 Sustainable Pace",color:"#8FBD9E",bgColor:"#EEF6F1",time:"45 min/day",message:"6 months at 3 sessions a week is enough runway to build a compelling portfolio without burning out. The imposter syndrome won't disappear — but it gets quieter as the work gets better. 💫"}}
+   ]},
+  {id:"claire",name:"Claire, 41",emoji:"👩🏼",location:"Edinburgh",
+   tagline:"Two kids, a good marriage, a career she's good at. And a quiet feeling she lost herself somewhere along the way.",
+   intro:"Claire is a 41-year-old NHS nurse from Edinburgh. She gives relentlessly — to her patients, her kids, her husband. Somewhere between her 30s and now, the version of her that wanted things for herself got quietly shelved. She just woke up one morning and thought: when is it my turn?",
+   closingNote:"Claire's goals aren't big or ambitious on paper. But for someone who's spent 15 years putting everyone else first, they're quietly revolutionary.",
+   closingQuote:"You are allowed to be someone in your own story, not just everyone else's support.",
+   goals:[
+     {category:"Hobbies & Creative Skills",catId:"hobbies",icon:"🎨",timeline:"6 months",
+      goal:"Finish writing the novel I started 8 years ago and gave up on",
+      why:"I wrote 40,000 words when I was 33 and then stopped because 'life got in the way'. The truth is I was scared it wasn't good enough. I still think about those characters. They're mine. And I want to finish their story before I convince myself I can't.",
+      habit:"Write for 30 minutes before the house wakes up — no editing, just forward movement",frequency:"Daily",duration:"30 mins",
+      obstacle:"I edit while I write and then hate everything and stop. Typing with the screen dimmed so I can't see what I'm writing.",
+      rec:{label:"🌱 Sustainable Pace",color:"#8FBD9E",bgColor:"#EEF6F1",time:"30 min/day",message:"30 minutes every morning, 6 months — that's a finished first draft. The screen-dimming trick is brilliant. Do it. 🌿"}},
+     {category:"Health & Body",catId:"health",icon:"🌸",timeline:"8 weeks",
+      goal:"Reclaim my body after years of putting my health last",
+      why:"I'm a nurse. I know what I should be doing. I just never do it for myself. I'm tired, my back hurts from 12-hour shifts, I haven't had a proper sleep routine in years. I want to feel like I live in my body rather than just using it to get through days.",
+      habit:"10-minute gentle stretch before bed + one piece of fruit added to every breakfast",frequency:"Daily",duration:"10–15 mins",
+      obstacle:"I set goals that are too big and burn out. Starting absurdly small this time.",
+      rec:{label:"🧘 Take It Steady",color:"#9ABBE0",bgColor:"#EEF4FB",time:"10–15 min/day",message:"Starting small is not settling. For someone running on empty, a tiny sustainable habit done every day is a revolution. 🌸"}},
+     {category:"Mindset & Inner Life",catId:"mindset",icon:"🌙",timeline:"12 weeks",
+      goal:"Stop feeling guilty for wanting things for myself",
+      why:"I feel selfish every time I do something just for me. Every time I close the study door to write. Every time I say I'm not available. The guilt is constant and I'm exhausted by it. I want to reach a place where I believe — really believe — that I matter too.",
+      habit:"Write one permission slip to myself each evening: 'Today I give myself permission to...'",frequency:"Nightly",duration:"5 mins",
+      obstacle:"It feels silly. But the silliness is exactly why it works — it interrupts the automatic guilt with a deliberate counter-thought.",
+      rec:{label:"⚡ Build the Habit First",color:"#E8BF82",bgColor:"#FBF4E6",time:"5 min/day",message:"5 minutes every evening. The compound effect on self-permission will show up in every area of Claire's life. 🌼"}}
+   ]}
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let S={gender:null,step:"intro",name:"",allGoals:{},openCats:{},openGoals:{},showEx:{},exDrawer:false,exModal:null,quoteIdx:Math.floor(Math.random()*QUOTES.length),uid:1};
+const T=()=>S.gender?THEMES[S.gender]:THEMES.woman;
+const CC=()=>S.gender==="man"?CAT_COLORS_MAN:CAT_COLORS;
+const mkGoal=()=>({id:S.uid++,goal:"",why:"",timeline:"",habit:"",duration:"",frequency:"",obstacle:""});
+const readyGoals=()=>CATEGORIES.flatMap(cat=>(S.allGoals[cat.id]||[]).filter(g=>g.goal&&g.habit).map(g=>({...g,cat})));
+
+function getRec(catId,why,timeline){
+  if(!why||why.trim().split(/\s+/).length<8||!timeline)return null;
+  const deep=why.trim().split(/\s+/).length>25,short=timeline==="4 weeks"||timeline==="8 weeks";
+  const t={career:{l:"30–45 min/day",m:"1–1.5 hrs/day",h:"2 hrs/day"},health:{l:"20–30 min/day",m:"30–45 min/day",h:"45–60 min/day"},mind:{l:"15–20 min/day",m:"30 min/day",h:"45 min/day"},relationships:{l:"1 intentional act/day",m:"daily presence + 1 weekly deep convo",h:"daily presence + weekly deep connection"},finance:{l:"10–15 min/day",m:"20–30 min/day",h:"30–45 min/day"},mindset:{l:"5–10 min/day",m:"15–20 min/day",h:"30 min/day"},hobbies:{l:"20–30 min/day",m:"30–45 min/day",h:"1 hr/day"},custom:{l:"15–20 min/day",m:"30 min/day",h:"45 min/day"}}[catId]||{l:"15–20 min/day",m:"30 min/day",h:"45 min/day"};
+  if(short&&deep) return{label:"🔥 Focused Sprint",color:"#E8A598",bgColor:"#FDF0EE",time:t.h,message:`Your answer shows real conviction. For a ${timeline} push, we suggest ${t.h}. Intensity works — but build in recovery. Burnout undoes everything. 🌿`};
+  if(!short&&deep)return{label:"🌱 Sustainable Pace",color:"#8FBD9E",bgColor:"#EEF6F1",time:t.m,message:`Strong why, sensible runway. For ${timeline}, consistency beats intensity. We suggest ${t.m}. The compound effect will do the heavy lifting if you simply show up. 💛`};
+  if(short&&!deep)return{label:"🧘 Take It Steady",color:"#9ABBE0",bgColor:"#EEF4FB",time:t.l,message:`A ${timeline} window is ambitious! Start lighter — ${t.l} — and build the routine first. Once it feels natural, gently increase the pace. 🌸`};
+  return{label:"⚡ Build the Habit First",color:"#E8BF82",bgColor:"#FBF4E6",time:t.l,message:`${t.l} done every day beats 3 hours twice a week. Nail the habit first, then scale up. 🌼`};
+}
+
+// ── ELEMENT HELPER ────────────────────────────────────────────────────────────
+function h(tag,attrs={},children=[]){
+  const e=document.createElement(tag);
+  for(const[k,v]of Object.entries(attrs)){
+    if(k==="style")e.style.cssText=v;
+    else if(k==="class")e.className=v;
+    else if(k.startsWith("on"))e[k]=v;
+    else e.setAttribute(k,v);
+  }
+  for(const c of(Array.isArray(children)?children:[children])){
+    if(c==null)continue;
+    e.appendChild(typeof c==="string"?document.createTextNode(c):c);
+  }
+  return e;
+}
+const div=(a,c)=>h("div",a,c);
+const p=(a,t)=>h("p",a,[t]);
+const btn=(a,c)=>h("button",a,c);
+const span=(a,t)=>h("span",a,[t]);
+
+// ── QUOTE TIMER ───────────────────────────────────────────────────────────────
+let qtimer=null;
+function startQTimer(){
+  if(qtimer)clearInterval(qtimer);
+  qtimer=setInterval(()=>{
+    document.querySelectorAll(".qb").forEach(b=>{
+      b.style.opacity="0";
+      setTimeout(()=>{S.quoteIdx=(S.quoteIdx+1)%QUOTES.length;const q=QUOTES[S.quoteIdx];const t=b.querySelector(".qt");const a=b.querySelector(".qa");if(t)t.textContent=`✦ “${q.text}”`;if(a)a.textContent=`— ${q.author}`;b.style.opacity="1";},400);
+    });
+  },7000);
+}
+function qBanner(){
+  const q=QUOTES[S.quoteIdx],Tv=T();
+  return div({class:"qb",style:`text-align:center;padding:16px 20px;background:${Tv.bgMuted};border-radius:16px;margin:16px 0;transition:opacity 0.4s;`},[
+    p({class:"qt",style:`color:${Tv.textMid};font-size:14px;font-family:'Lora',serif;font-style:italic;line-height:1.6;`},`✦ “${q.text}”`),
+    p({class:"qa",style:`color:${Tv.textFaint};font-size:11px;font-family:'DM Sans',sans-serif;margin-top:6px;letter-spacing:0.06em;`},`— ${q.author}`)
+  ]);
+}
+function recBadge(rec){
+  if(!rec)return null;
+  const Tv=T();
+  return div({style:`background:${rec.bgColor};border:1.5px solid ${rec.color}55;border-radius:14px;padding:14px 18px;margin-top:14px;`},[
+    p({style:`color:${rec.color};font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;letter-spacing:0.04em;margin-bottom:6px;`},`${rec.label} — ${rec.time}`),
+    p({style:`color:${Tv.textMid};font-size:13px;font-family:'Lora',serif;line-height:1.7;font-style:italic;`},rec.message)
+  ]);
+}
+function mkField(label,ph,val,cb){
+  const Tv=T();
+  const inp=h("input",{type:"text",placeholder:ph,style:`width:100%;background:${Tv.bgCard};border:1.5px solid ${Tv.borderSoft};border-radius:12px;padding:11px 14px;color:${Tv.textDark};font-size:14px;font-family:'Lora',serif;box-sizing:border-box;transition:border-color 0.2s;`});
+  inp.value=val;
+  inp.onfocus=()=>inp.style.borderColor=Tv.accent;
+  inp.onblur=()=>inp.style.borderColor=Tv.borderSoft;
+  inp.oninput=e=>cb(e.target.value);
+  return div({},[
+    h("label",{style:`display:block;color:${Tv.textSoft};font-size:11px;font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.04em;margin-bottom:7px;`},[label]),
+    inp
+  ]);
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(){
+  if(qtimer){clearInterval(qtimer);qtimer=null;}
+  const app=document.getElementById("app");app.innerHTML="";
+  const Tv=T();document.body.style.background=Tv.bg;
+  let sc=document.getElementById("dsc");
+  if(!sc){sc=document.createElement("style");sc.id="dsc";document.head.appendChild(sc);}
+  sc.innerHTML=`::-webkit-scrollbar-track{background:${Tv.bgMuted};}::-webkit-scrollbar-thumb{background:${Tv.border};border-radius:10px;}input,textarea{color:${Tv.textDark}!important;}input::placeholder,textarea::placeholder{color:${Tv.textFaint}!important;font-style:italic;}`;
+
+  if(!S.gender){app.appendChild(genderScreen());return;}
+
+  const wrap=div({style:`min-height:100vh;background:${Tv.bg};`});
+  if(S.exDrawer)wrap.appendChild(S.exModal!==null?exModal(EXAMPLE_PEOPLE[S.exModal]):exDrawer());
+  if(S.step!=="planner"&&S.step!=="vision")wrap.appendChild(div({style:`height:5px;background:${Tv.band};`}));
+  if(S.step==="intro")wrap.appendChild(introScreen());
+  else if(S.step==="plan")wrap.appendChild(planScreen());
+  else if(S.step==="summary")wrap.appendChild(summaryScreen());
+  else if(S.step==="vision")wrap.appendChild(visionScreen());
+  else if(S.step==="planner")wrap.appendChild(plannerScreen());
+  if(S.step!=="planner"&&S.step!=="vision")wrap.appendChild(div({style:`height:5px;background:${Tv.band};margin-top:40px;`}));
+  app.appendChild(wrap);startQTimer();
+}
+
+// ── GENDER SELECT ──────────────────────────────────────────────────────────────
+function genderScreen(){
+  const mkBtn=(g,emoji,title,sub,grad,hoverBorder,hoverBg,shadowC,textC)=>{
+    const b=btn({style:`background:#FFFCF9;border:2px solid #F2E4D5;border-radius:20px;padding:32px 20px;cursor:pointer;text-align:center;transition:all 0.25s;width:100%;`},[
+      span({style:"font-size:48px;display:block;margin-bottom:12px;"},emoji),
+      p({style:`font-family:'Lora',serif;font-size:22px;font-weight:700;color:#3D2C1E;margin-bottom:8px;`},title),
+      p({style:`font-family:'DM Sans',sans-serif;font-size:12px;line-height:1.7;color:${textC};`},sub),
+      div({style:`margin-top:16px;height:3px;border-radius:4px;background:${grad};`})
+    ]);
+    b.onmouseenter=()=>{b.style.background=hoverBg;b.style.borderColor=hoverBorder;b.style.transform="translateY(-3px)";b.style.boxShadow=`0 8px 32px ${shadowC}`;};
+    b.onmouseleave=()=>{b.style.background="#FFFCF9";b.style.borderColor="#F2E4D5";b.style.transform="none";b.style.boxShadow="none";};
+    b.onclick=()=>{S.gender=g;render();};
+    return b;
+  };
+  const h1=h("h1",{style:"font-family:'Lora',serif;font-size:clamp(32px,6vw,52px);font-weight:700;color:#3D2C1E;text-align:center;line-height:1.25;margin-bottom:12px;"});
+  h1.innerHTML="Before we begin —<br><span style='font-style:italic;color:#A8907E;'>who are we building this for?</span>";
+  return div({style:"min-height:100vh;background:#FAF7F4;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;"},[
+    p({style:"color:#C9B5A3;font-family:'DM Sans',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.22em;margin-bottom:20px;text-align:center;"},"✦ YOUR PERSONAL GROWTH BLUEPRINT ✦"),
+    h1,
+    p({style:"color:#A8907E;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.8;text-align:center;max-width:400px;margin-bottom:40px;"},"Your choice shapes the look, feel, and tone of the entire experience. Both paths lead to the same powerful blueprint — just in a style made for you."),
+    div({style:"display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:500px;width:100%;"},[
+      mkBtn("woman","🌸","For her","Warm, nurturing, softly beautiful — a gentle guide to becoming.","linear-gradient(90deg,#E8A598,#D4A5C9)","#E8A598","linear-gradient(135deg,#FDF0EE,#F8F0F6)","rgba(232,165,152,0.25)","#A8907E"),
+      mkBtn("man","⚡","For him","Grounded, direct, clear-eyed — a blueprint built for action.","linear-gradient(90deg,#4A7C59,#3D6B8A)","#4A7C59","linear-gradient(135deg,#EBF3EE,#E8F0F6)","rgba(74,124,89,0.2)","#6E7A6A")
+    ]),
+    p({style:"color:#C9B5A3;font-family:'DM Sans',sans-serif;font-size:11px;margin-top:24px;font-style:italic;"},"You can always come back and switch if you want.")
+  ]);
+}
+
+// ── INTRO ─────────────────────────────────────────────────────────────────────
+function introScreen(){
+  const Tv=T(),cc=CC();
+  const h1=h("h1",{style:`font-family:'Lora',serif;font-size:clamp(36px,6vw,58px);font-weight:700;line-height:1.18;margin-bottom:18px;color:${Tv.textDark};`});
+  h1.innerHTML=`${Tv.headline1}<br><span style="color:${Tv.accent};font-style:italic;">${Tv.headline2}</span>`;
+  const personCards=EXAMPLE_PEOPLE.map(person=>{
+    const card=div({style:`background:${Tv.bgCard};border:1.5px solid ${Tv.borderSoft};border-radius:20px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.05);`});
+    const cardHead=div({style:`background:${Tv.bgMuted};padding:20px 22px;border-bottom:1px solid ${Tv.borderSoft};`},[
+      div({style:"display:flex;align-items:center;gap:14px;"},[
+        span({style:`width:48px;height:48px;border-radius:50%;background:${Tv.grad};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;`},person.emoji),
+        div({style:"flex:1;"},[
+          p({style:`font-family:'Lora',serif;font-size:18px;font-weight:700;color:${Tv.textDark};margin-bottom:2px;`},person.name),
+          p({style:`color:${Tv.textSoft};font-family:'DM Sans',sans-serif;font-size:12px;line-height:1.5;`},person.tagline)
+        ]),
+        span({style:`background:${Tv.bgCard};color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;padding:3px 10px;border-radius:20px;border:1px solid ${Tv.borderSoft};flex-shrink:0;`},person.location)
+      ])
+    ]);
+    const introP=p({style:`color:${Tv.textMid};font-family:'Lora',serif;font-size:13px;font-style:italic;line-height:1.8;margin-top:14px;`},"");
+    introP.textContent=`"${person.intro}"`;
+    cardHead.appendChild(introP);
+    const goalsDiv=div({style:"padding:18px 22px;display:grid;gap:10px;"},person.goals.map(g=>{
+      const c=cc[g.catId]||cc.custom;
+      const whyP=p({style:`color:${Tv.textSoft};font-family:'Lora',serif;font-size:12px;font-style:italic;line-height:1.75;border-left:3px solid ${c.main}88;padding-left:10px;margin-bottom:8px;`},"");
+      whyP.textContent=`"${g.why}"`;
+      return div({style:`background:${c.bg};border:1.5px solid ${c.main}44;border-radius:14px;padding:13px 16px;`},[
+        div({style:"display:flex;align-items:center;gap:7px;margin-bottom:7px;flex-wrap:wrap;"},[
+          span({style:"font-size:13px;"},g.icon),
+          span({style:`background:${Tv.bgCard};color:${c.text};font-family:'DM Sans',sans-serif;font-weight:700;font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid ${c.main}55;`},g.category),
+          span({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;margin-left:auto;`},g.timeline)
+        ]),
+        p({style:`font-family:'Lora',serif;font-size:14px;font-weight:700;color:${Tv.textDark};margin-bottom:6px;line-height:1.4;`},g.goal),
+        whyP,
+        div({style:`display:flex;align-items:center;gap:8px;background:${Tv.bgCard};border-radius:8px;padding:7px 11px;flex-wrap:wrap;`},[
+          span({style:`color:${c.text};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.05em;`},"⚡ DAILY:"),
+          span({style:`color:${Tv.textDark};font-family:'Lora',serif;font-size:12px;flex:1;`},g.habit),
+          span({style:`color:${c.text};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;flex-shrink:0;`},g.frequency)
+        ])
+      ]);
+    }));
+    const closingP=p({style:`color:${Tv.textMid};font-family:'Lora',serif;font-size:12px;font-style:italic;line-height:1.7;`},"");
+    closingP.textContent=`"${person.closingQuote}"`;
+    card.appendChild(cardHead);card.appendChild(goalsDiv);
+    card.appendChild(div({style:"padding:0 22px 20px;"},[div({style:`background:${Tv.bgMuted};border-radius:12px;padding:12px 16px;border-left:3px solid ${Tv.accent};`},[closingP])]));
+    return card;
+  });
+
+  const nameInp=h("input",{type:"text",placeholder:Tv.nameInput,style:`width:100%;background:${Tv.bgCard};border:1.5px solid ${Tv.borderSoft};border-radius:12px;padding:15px;color:${Tv.textDark};font-size:16px;font-family:'Lora',serif;box-sizing:border-box;text-align:center;margin-bottom:12px;transition:border-color 0.2s;`});
+  nameInp.value=S.name;
+  nameInp.onfocus=()=>nameInp.style.borderColor=Tv.accent;
+  nameInp.onblur=()=>nameInp.style.borderColor=Tv.borderSoft;
+  nameInp.oninput=e=>{S.name=e.target.value;refreshBeginBtn(Tv);};
+  nameInp.onkeydown=e=>{if(e.key==="Enter"&&S.name.trim()){S.step="plan";render();}};
+
+  const beginB=btn({id:"begin-btn",style:`width:100%;border:none;padding:16px;border-radius:14px;font-size:14px;font-family:'DM Sans',sans-serif;font-weight:700;letter-spacing:0.08em;margin-bottom:12px;transition:all 0.2s;background:${Tv.bgMuted};color:${Tv.textFaint};cursor:not-allowed;`},[Tv.beginBtn]);
+  beginB.onclick=()=>{if(S.name.trim()){S.step="plan";render();}};
+  setTimeout(()=>refreshBeginBtn(Tv),0);
+
+  const switchB=btn({style:`background:none;border:none;color:${Tv.textFaint};font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;text-decoration:underline;`},["← Switch theme"]);
+  switchB.onclick=()=>{S.gender=null;render();};
+
+  const divider=()=>div({style:`display:flex;align-items:center;gap:14px;margin-bottom:20px;`},[
+    div({style:`flex:1;height:1px;background:${Tv.borderSoft};`}),
+    p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.22em;white-space:nowrap;`},"✦ REAL BLUEPRINTS FROM REAL PEOPLE"),
+    div({style:`flex:1;height:1px;background:${Tv.borderSoft};`})
+  ]);
+  const nowDivider=div({style:`display:flex;align-items:center;gap:14px;margin-bottom:24px;`},[
+    div({style:`flex:1;height:1px;background:${Tv.borderSoft};`}),
+    p({style:`color:${Tv.accent};font-family:'Lora',serif;font-size:15px;font-style:italic;white-space:nowrap;`},"Now it’s your turn."),
+    div({style:`flex:1;height:1px;background:${Tv.borderSoft};`})
+  ]);
+  const subNote=p({style:`color:${Tv.textSoft};font-family:'DM Sans',sans-serif;font-size:13px;text-align:center;margin-bottom:24px;line-height:1.7;`},"");
+  subNote.innerHTML=`These are fictional characters — but their goals, habits, and honesty are completely real.<br><span style="color:${Tv.textFaint};font-style:italic;">This is what your blueprint could look like.</span>`;
+
+  return div({style:"max-width:960px;margin:0 auto;padding:52px 24px 60px;"},[
+    div({style:"text-align:center;margin-bottom:48px;"},[
+      p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.22em;margin-bottom:18px;`},Tv.tagline),
+      h1,
+      p({style:`color:${Tv.textSoft};font-size:16px;font-family:'DM Sans',sans-serif;line-height:1.85;max-width:520px;margin:0 auto 8px;`},Tv.subtext),
+      p({style:`color:${Tv.textFaint};font-size:13px;font-family:'Lora',serif;font-style:italic;max-width:440px;margin:0 auto;`},Tv.subtext2)
+    ]),
+    divider(),subNote,
+    div({style:"display:grid;grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr));gap:18px;margin-bottom:52px;"},personCards),
+    div({style:"max-width:480px;margin:0 auto;text-align:center;"},[
+      nowDivider,qBanner(),
+      div({style:"margin-top:20px;"},[nameInp,beginB,switchB])
+    ])
+  ]);
+}
+function refreshBeginBtn(Tv){
+  const b=document.getElementById("begin-btn");if(!b)return;
+  if(S.name.trim()){b.style.background=Tv.grad;b.style.color="#fff";b.style.cursor="pointer";b.style.boxShadow=`0 6px 24px ${Tv.accent}44`;}
+  else{b.style.background=Tv.bgMuted;b.style.color=Tv.textFaint;b.style.cursor="not-allowed";b.style.boxShadow="none";}
+}
+
+// ── PLAN SCREEN ───────────────────────────────────────────────────────────────
+function planScreen(){
+  const Tv=T(),rg=readyGoals();
+  const catSections=CATEGORIES.map(cat=>catSection(cat,Tv));
+  const ctaDiv=rg.length>0?div({style:"text-align:center;margin-top:24px;"},[
+    p({style:`color:${S.gender==="man"?"#4A7C59":"#8FBD9E"};font-family:'DM Sans',sans-serif;font-weight:600;font-size:12px;margin-bottom:14px;`},`✓ ${rg.length} goal${rg.length>1?"s":""} ready ${Tv.genderEmoji}`),
+    (() => {
+      const b=btn({style:`background:${Tv.grad};color:#fff;border:none;padding:15px 44px;border-radius:14px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:700;cursor:pointer;letter-spacing:0.06em;box-shadow:0 4px 20px ${Tv.accent}44;`},["See my complete blueprint ✦"]);
+      b.onclick=()=>{S.step="summary";render();};return b;
+    })()
+  ]):null;
+  return div({style:"max-width:680px;margin:0 auto;padding:40px 24px;"},[
+    p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-weight:600;font-size:10px;letter-spacing:0.18em;margin-bottom:8px;`},`${Tv.genderEmoji} ${S.name.toUpperCase()}'S BLUEPRINT`),
+    h("h2",{style:`font-family:'Lora',serif;font-size:26px;font-weight:700;margin-bottom:8px;color:${Tv.textDark};`},[Tv.planTitle]),
+    p({style:`color:${Tv.textSoft};font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.75;margin-bottom:6px;`},Tv.planSub),
+    qBanner(),
+    div({style:"margin-top:18px;"},catSections),
+    ctaDiv
+  ]);
+}
+
+function catSection(cat,Tv){
+  const c=CC()[cat.id]||CC().custom;
+  const goals=S.allGoals[cat.id]||[];const count=goals.length;const open=!!S.openCats[cat.id];
+  const hdr=btn({style:`width:100%;background:none;border:none;padding:18px 22px;display:flex;align-items:center;gap:14px;cursor:pointer;text-align:left;`},[
+    span({style:"font-size:20px;flex-shrink:0;"},cat.icon),
+    div({style:"flex:1;"},[
+      p({style:`color:${Tv.textDark};font-family:'Lora',serif;font-size:17px;font-weight:600;margin-bottom:2px;`},cat.label),
+      p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:12px;`},cat.description)
+    ]),
+    count>0?span({style:`background:${c.bg};color:${c.text};font-family:'DM Sans',sans-serif;font-weight:700;font-size:11px;padding:4px 12px;border-radius:20px;flex-shrink:0;`},`${count} goal${count>1?"s":""}`):"",
+    span({style:`color:${Tv.textFaint};font-size:20px;transition:transform 0.3s;transform:${open?"rotate(45deg)":"none"};flex-shrink:0;`},"+")
+  ]);
+  hdr.onclick=()=>{S.openCats[cat.id]=!open;render();};
+  const addB=btn({style:`width:100%;background:${c.bg};border:1.5px dashed ${c.main}88;color:${c.text};padding:13px;border-radius:14px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:600;letter-spacing:0.04em;margin-top:${count>0?"4px":"0"};`},[`${cat.icon} Add ${count>0?"another":"a"} goal in ${cat.label}`]);
+  addB.onclick=()=>{if(!S.allGoals[cat.id])S.allGoals[cat.id]=[];const ng=mkGoal();S.allGoals[cat.id].push(ng);S.openGoals[ng.id]=true;render();};
+  const body=open?div({style:"padding:0 20px 20px;"},[...goals.map((g,i)=>goalCard(g,cat,i,Tv)),addB]):null;
+  return div({style:`background:${Tv.bgCard};border:1.5px solid ${open||count>0?c.main+"66":Tv.borderSoft};border-radius:18px;margin-bottom:10px;overflow:hidden;transition:all 0.3s;box-shadow:${count>0?`0 2px 12px ${c.main}1a`:"none"};`},[hdr,body]);
+}
+
+function goalCard(g,cat,index,Tv){
+  const c=CC()[cat.id]||CC().custom;
+  const open=S.openGoals[g.id]!==false;
+  const rec=getRec(cat.id,g.why,g.timeline);
+  const showRec=g.why&&g.why.trim().split(/\s+/).length>8&&g.timeline;
+  const togB=btn({style:`background:none;border:none;color:${Tv.textFaint};cursor:pointer;font-size:20px;line-height:1;transition:transform 0.3s;transform:${open?"rotate(45deg)":"none"};`},["+"]);
+  togB.onclick=()=>{S.openGoals[g.id]=!open;render();};
+  const delB=btn({style:`background:none;border:none;color:${Tv.textFaint};cursor:pointer;font-size:14px;`},["✕"]);
+  delB.onclick=()=>{S.allGoals[cat.id]=S.allGoals[cat.id].filter(x=>x.id!==g.id);delete S.openGoals[g.id];delete S.showEx[g.id];render();};
+  const hdr=div({style:`display:flex;align-items:center;padding:14px 18px;gap:10px;`},[
+    span({style:`background:${c.bg};color:${c.text};font-family:'DM Sans',sans-serif;font-weight:600;font-size:11px;padding:3px 12px;border-radius:20px;flex-shrink:0;`},`Goal ${index+1}`),
+    span({style:`flex:1;color:${g.goal?Tv.textDark:Tv.textFaint};font-size:14px;font-family:'Lora',serif;font-style:${g.goal?"normal":"italic"};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;`},g.goal||"Your goal here..."),
+    togB,delB
+  ]);
+  if(!open)return div({style:`background:${Tv.bgCard};border:1.5px solid ${Tv.borderSoft};border-radius:16px;margin-bottom:12px;overflow:hidden;`},[hdr]);
+
+  const ta=h("textarea",{rows:"3",placeholder:"Don't just write the obvious answer. What's really driving this?",style:`width:100%;background:${Tv.bgCard};border:1.5px solid ${Tv.borderSoft};border-radius:12px;padding:11px 14px;color:${Tv.textDark};font-size:14px;font-family:'Lora',serif;box-sizing:border-box;resize:vertical;transition:border-color 0.2s;`});
+  ta.value=g.why||"";ta.onfocus=()=>ta.style.borderColor=Tv.accent;ta.onblur=()=>ta.style.borderColor=Tv.borderSoft;ta.oninput=e=>{g.why=e.target.value;render();};
+  const whyDiv=div({},[
+    h("label",{style:`display:block;color:${Tv.textSoft};font-size:11px;font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.04em;margin-bottom:7px;`},["💛 Why does this matter to you? Be honest — the deeper the why, the stronger the pull"]),
+    ta,
+    g.why&&g.why.trim().split(/\s+/).length<8?p({style:`color:${Tv.accent};font-family:'DM Sans',sans-serif;font-size:11px;margin-top:5px;`},Tv.deeperNudge):null
+  ]);
+  const tlBtns=TIMELINE_OPTIONS.map(t=>{
+    const b=btn({style:`padding:8px 16px;border-radius:20px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.2s;border:1.5px solid ${g.timeline===t?c.main:Tv.borderSoft};background:${g.timeline===t?c.bg:Tv.bgCard};color:${g.timeline===t?c.text:Tv.textSoft};`},[t]);
+    b.onclick=()=>{g.timeline=t;render();};return b;
+  });
+  const showEx=!!S.showEx[g.id];
+  const exTogB=btn({style:`margin-top:16px;background:${c.bg};border:1.5px solid ${c.main}55;color:${c.text};padding:9px 18px;border-radius:20px;cursor:pointer;font-size:11px;font-family:'DM Sans',sans-serif;font-weight:600;`},[showEx?"▲ Hide examples":"✦ Need inspiration? See examples"]);
+  exTogB.onclick=()=>{S.showEx[g.id]=!showEx;render();};
+  const exCards=showEx?cat.goalExamples.map(ex=>{
+    const ec=div({style:`background:${Tv.bgMuted};border:1.5px solid ${Tv.borderSoft};border-radius:12px;padding:13px 16px;cursor:pointer;transition:border-color 0.2s;`},[
+      p({style:`color:${Tv.textDark};font-size:13px;font-family:'Lora',serif;font-weight:600;margin-bottom:3px;`},ex.goal),
+      p({style:`color:${Tv.textSoft};font-size:12px;font-family:'DM Sans',sans-serif;margin-bottom:2px;`},ex.habit),
+      p({style:`color:${c.text};font-size:11px;font-family:'DM Sans',sans-serif;font-weight:600;`},ex.frequency),
+      p({style:`color:${Tv.textFaint};font-size:10px;font-family:'DM Sans',sans-serif;margin-top:4px;`},"tap to use this →")
+    ]);
+    ec.onmouseenter=()=>ec.style.borderColor=c.main;ec.onmouseleave=()=>ec.style.borderColor=Tv.borderSoft;
+    ec.onclick=()=>{g.goal=ex.goal;g.habit=ex.habit;g.frequency=ex.frequency;render();};
+    return ec;
+  }):[];
+
+  const body=div({style:"padding:0 18px 22px;"},[
+    div({style:`background:${c.bg};border:1.5px solid ${c.main}44;border-radius:12px;padding:14px 18px;margin-bottom:18px;`},[
+      p({style:`color:${c.text};font-family:'DM Sans',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.08em;margin-bottom:10px;`},"💭 PAUSE AND THINK ABOUT THIS FIRST"),
+      ...cat.promptQuestions.map((q,qi)=>p({style:`color:${Tv.textMid};font-size:13px;font-family:'Lora',serif;line-height:1.75;font-style:italic;margin-bottom:${qi<cat.promptQuestions.length-1?"6px":"0"};`},`${qi+1}. ${q}`))
+    ]),
+    div({style:"display:grid;gap:16px;"},[
+      mkField("🎯 The goal",cat.goalExamples[0]?.goal||"What do you want to achieve?",g.goal||"",v=>{g.goal=v;render();}),
+      whyDiv,
+      div({},[
+        h("label",{style:`display:block;color:${Tv.textSoft};font-size:11px;font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.04em;margin-bottom:7px;`},["🗓 Timeline — when do you want to achieve this?"]),
+        div({style:"display:flex;gap:8px;flex-wrap:wrap;"},tlBtns)
+      ]),
+      showRec&&rec?recBadge(rec):null,
+      mkField("⚡ Your specific daily or weekly habit",cat.goalExamples[0]?.habit||"What will you actually do?",g.habit||"",v=>{g.habit=v;render();}),
+      div({style:"display:grid;grid-template-columns:1fr 1fr;gap:10px;"},[
+        mkField("⏱ Duration per session","e.g. 30 minutes",g.duration||"",v=>{g.duration=v;}),
+        mkField("🔁 How often?","e.g. Daily / 3x per week",g.frequency||"",v=>{g.frequency=v;})
+      ]),
+      mkField("🌱 Biggest obstacle — and your plan to overcome it","Name it so you can beat it",g.obstacle||"",v=>{g.obstacle=v;})
+    ]),
+    exTogB,
+    showEx?div({style:"margin-top:12px;display:grid;gap:8px;"},exCards):null
+  ]);
+  return div({style:`background:${Tv.bgCard};border:1.5px solid ${c.main}88;border-radius:16px;margin-bottom:12px;overflow:hidden;box-shadow:0 2px 16px ${c.main}22;`},[hdr,body]);
+}
+
+// ── SUMMARY ───────────────────────────────────────────────────────────────────
+function summaryScreen(){
+  const Tv=T(),rg=readyGoals(),cc=CC();
+  const catBlocks=CATEGORIES.flatMap(cat=>{
+    const cg=rg.filter(g=>g.cat.id===cat.id);if(!cg.length)return[];
+    const c=cc[cat.id]||cc.custom;
+    return [div({style:"margin-bottom:28px;"},[
+      div({style:"display:flex;align-items:center;gap:10px;margin-bottom:12px;"},[
+        span({style:"font-size:18px;"},cat.icon),
+        span({style:`color:${c.text};font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;letter-spacing:0.08em;`},cat.label.toUpperCase())
+      ]),
+      ...cg.map((g,i)=>{
+        const rec=getRec(cat.id,g.why,g.timeline);
+        const whyP=g.why?p({style:`color:${Tv.textSoft};font-size:13px;font-family:'Lora',serif;font-style:italic;line-height:1.7;margin-bottom:12px;border-left:3px solid ${c.main}66;padding-left:12px;`},""):null;
+        if(whyP)whyP.textContent=`"${g.why}"`;
+        return div({style:`background:${Tv.bgCard};border:1.5px solid ${c.main}44;border-radius:16px;padding:20px 22px;margin-bottom:10px;box-shadow:0 2px 12px ${c.main}14;`},[
+          div({style:"display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;"},[
+            span({style:`background:${c.bg};color:${c.text};font-family:'DM Sans',sans-serif;font-weight:600;font-size:10px;padding:3px 10px;border-radius:20px;`},`Goal ${i+1}`),
+            g.timeline?span({style:`background:${Tv.bgMuted};color:${Tv.textSoft};font-family:'DM Sans',sans-serif;font-size:10px;padding:3px 10px;border-radius:20px;`},g.timeline):null
+          ]),
+          p({style:`font-family:'Lora',serif;font-size:19px;font-weight:700;color:${Tv.textDark};margin-bottom:6px;`},g.goal),
+          whyP,
+          rec?recBadge(rec):null,
+          div({style:`background:${Tv.bgMuted};border-radius:10px;padding:10px 14px;margin-top:12px;`},[
+            p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;margin-bottom:3px;letter-spacing:0.06em;`},"DAILY ACTION"),
+            p({style:`color:${Tv.textDark};font-size:14px;font-family:'Lora',serif;`},g.habit),
+            div({style:"display:flex;gap:12px;margin-top:6px;flex-wrap:wrap;"},[
+              g.frequency?span({style:`color:${c.text};font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;`},`🔁 ${g.frequency}`):null,
+              g.duration?span({style:`color:${Tv.textSoft};font-family:'DM Sans',sans-serif;font-size:11px;`},`⏱ ${g.duration}`):null
+            ])
+          ]),
+          g.obstacle?p({style:`color:${Tv.textFaint};font-size:11px;font-family:'DM Sans',sans-serif;font-style:italic;margin-top:8px;`},`🌱 Obstacle to overcome: ${g.obstacle}`):null
+        ]);
+      })
+    ])];
+  });
+  const editB=btn({style:`background:${Tv.bgMuted};border:1.5px solid ${Tv.borderSoft};color:${Tv.textSoft};padding:11px 26px;border-radius:20px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:600;`},["← Edit my plan"]);
+  editB.onclick=()=>{S.step="plan";render();};
+  const visB=btn({style:`background:${Tv.gradAlt};color:#fff;border:none;padding:11px 26px;border-radius:20px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:700;`},["🎯 See my vision board →"]);
+  visB.onclick=()=>{S.step="vision";render();};
+  const planB=btn({style:`background:${Tv.grad};color:#fff;border:none;padding:11px 26px;border-radius:20px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:700;`},["🗓 Create my daily planner →"]);
+  planB.onclick=()=>{S.step="planner";render();};
+  return div({style:"max-width:680px;margin:0 auto;padding:40px 24px;"},[
+    div({style:"text-align:center;margin-bottom:32px;"},[
+      p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-weight:600;font-size:10px;letter-spacing:0.2em;margin-bottom:10px;`},Tv.blueprintBadge),
+      h("h2",{style:`font-family:'Lora',serif;font-size:32px;font-weight:700;margin-bottom:8px;color:${Tv.textDark};`},[`${S.name}'s Growth Plan`]),
+      p({style:`color:${Tv.textSoft};font-family:'DM Sans',sans-serif;font-size:13px;`},Tv.blueprintSub)
+    ]),
+    qBanner(),
+    div({style:"margin-top:20px;"},catBlocks),
+    div({style:`background:${Tv.grad};border-radius:20px;padding:32px;text-align:center;margin-top:8px;`},[
+      p({style:"color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.18em;margin-bottom:14px;"},`${Tv.genderEmoji} YOUR COMMITMENT`),
+      p({style:"color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.9;max-width:440px;margin:0 auto 18px;"},Tv.commitment),
+      p({style:"color:rgba(255,255,255,0.9);font-family:'Lora',serif;font-size:16px;font-style:italic;"},Tv.commitQuote)
+    ]),
+    div({style:"display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap;"},[editB,visB,planB])
+  ]);
+}
+
+// ── VISION BOARD ──────────────────────────────────────────────────────────────
+function visionScreen(){
+  const Tv=T(),rg=readyGoals(),cc=CC();
+  const grouped=CATEGORIES.reduce((a,cat)=>{const gs=rg.filter(g=>g.cat.id===cat.id);if(gs.length)a.push({cat,goals:gs});return a;},[]);
+  const backB=btn({style:`background:none;border:1.5px solid ${Tv.borderSoft};color:${Tv.textSoft};padding:9px 20px;border-radius:20px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:600;`},["← Back"]);
+  backB.onclick=()=>{S.step="summary";render();};
+  const editB=btn({style:`background:${Tv.grad};color:#fff;border:none;padding:9px 20px;border-radius:20px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:700;`},["Edit goals →"]);
+  editB.onclick=()=>{S.step="plan";render();};
+  const statsEl=div({style:`display:inline-flex;gap:24px;background:${Tv.bgCard};border:1.5px solid ${Tv.borderSoft};border-radius:50px;padding:12px 28px;margin-bottom:16px;`},[
+    ...([{v:rg.length,l:"GOALS"},{v:grouped.length,l:"LIFE AREAS"},{v:rg.filter(g=>g.habit).length,l:"DAILY HABITS"}].flatMap((s,si)=>[
+      si>0?div({style:`width:1px;background:${Tv.borderSoft};`}):null,
+      div({style:"text-align:center;"},[
+        p({style:`color:${Tv.accent};font-family:'Lora',serif;font-size:28px;font-weight:700;line-height:1;`},String(s.v)),
+        p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:0.08em;margin-top:3px;`},s.l)
+      ])
+    ]))
+  ]);
+  const cards=rg.map(g=>{
+    const c=cc[g.cat.id]||cc.custom;
+    const whyDiv=g.why?div({style:`border-left:3px solid ${c.main};padding-left:12px;margin-bottom:14px;`},[(() => {const wp=p({style:`color:${Tv.textSoft};font-size:12px;font-family:'Lora',serif;font-style:italic;line-height:1.7;`},"");wp.textContent=`"${g.why.length>120?g.why.slice(0,120)+"...":g.why}"`;return wp;})()]):null;
+    const card=div({style:`background:${Tv.bgCard};border:2px solid ${c.main}55;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px ${c.main}18;transition:transform 0.2s,box-shadow 0.2s;`},[
+      div({style:`height:4px;background:linear-gradient(90deg,${c.main},${c.main}88);`}),
+      div({style:"padding:20px;"},[
+        div({style:"display:flex;align-items:center;gap:8px;margin-bottom:14px;"},[
+          span({style:"font-size:16px;"},g.cat.icon),
+          span({style:`background:${c.bg};color:${c.text};font-family:'DM Sans',sans-serif;font-weight:700;font-size:10px;padding:3px 10px;border-radius:20px;letter-spacing:0.06em;`},g.cat.label.toUpperCase()),
+          g.timeline?span({style:`background:${Tv.bgMuted};color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;padding:3px 8px;border-radius:20px;margin-left:auto;`},g.timeline):null
+        ]),
+        p({style:`font-family:'Lora',serif;font-size:16px;font-weight:700;color:${Tv.textDark};line-height:1.4;margin-bottom:12px;`},g.goal),
+        whyDiv,
+        div({style:`background:${c.bg};border-radius:10px;padding:10px 14px;`},[
+          p({style:`color:${c.text};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;`},"⚡ DAILY HABIT"),
+          p({style:`color:${Tv.textDark};font-family:'Lora',serif;font-size:13px;line-height:1.5;`},g.habit),
+          div({style:"display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;"},[
+            g.frequency?span({style:`color:${c.text};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;`},`🔁 ${g.frequency}`):null,
+            g.duration?span({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;`},`⏱ ${g.duration}`):null
+          ])
+        ])
+      ])
+    ]);
+    card.onmouseenter=()=>{card.style.transform="translateY(-3px)";card.style.boxShadow=`0 8px 32px ${c.main}30`;};
+    card.onmouseleave=()=>{card.style.transform="translateY(0)";card.style.boxShadow=`0 4px 24px ${c.main}18`;};
+    return card;
+  });
+  const identEl=div({style:`background:${Tv.grad};border-radius:24px;padding:40px 36px;text-align:center;margin-bottom:32px;position:relative;overflow:hidden;`},[
+    p({style:"color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.22em;margin-bottom:14px;"},"✦ THE IDENTITY YOU'RE BUILDING"),
+    p({style:"color:#fff;font-family:'Lora',serif;font-size:clamp(18px,3vw,26px);font-style:italic;line-height:1.6;max-width:480px;margin:0 auto 20px;"},"“I am someone who shows up for myself — not perfectly, but consistently. Every day is a brick.”"),
+    div({style:"display:flex;justify-content:center;gap:8px;flex-wrap:wrap;"},grouped.map(({cat})=>span({style:"background:rgba(255,255,255,0.2);color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:5px 14px;border-radius:20px;"},`${cat.icon} ${cat.label}`)))
+  ]);
+  const habitListEl=div({style:`background:${Tv.bgCard};border:1.5px solid ${Tv.borderSoft};border-radius:20px;padding:28px;margin-bottom:32px;`},[
+    p({style:`color:${Tv.textDark};font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.08em;margin-bottom:18px;`},"✦ YOUR DAILY HABIT STACK"),
+    ...rg.map((g,i)=>{
+      const c=cc[g.cat.id]||cc.custom;
+      return div({style:`display:flex;align-items:center;gap:14px;padding:12px 16px;background:${Tv.bgMuted};border-radius:12px;border:1.5px solid ${c.main}33;margin-bottom:8px;`},[
+        span({style:`width:32px;height:32px;border-radius:50%;background:${c.bg};border:2px solid ${c.main}66;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;color:${c.text};`},String(i+1)),
+        div({style:"flex:1;min-width:0;"},[
+          p({style:`color:${Tv.textDark};font-family:'Lora',serif;font-size:14px;font-weight:600;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;`},g.habit),
+          p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:11px;`},g.goal)
+        ]),
+        div({style:"display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;"},[
+          span({style:`background:${c.bg};color:${c.text};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;`},g.frequency||"Daily"),
+          g.duration?span({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;align-self:center;`},`⏱ ${g.duration}`):null
+        ])
+      ]);
+    })
+  ]);
+  const editB2=btn({style:`background:${Tv.bgMuted};border:1.5px solid ${Tv.borderSoft};color:${Tv.textSoft};padding:13px 28px;border-radius:20px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:600;`},["← Edit my goals"]);
+  editB2.onclick=()=>{S.step="plan";render();};
+  const planB=btn({style:`background:${Tv.grad};color:#fff;border:none;padding:13px 28px;border-radius:20px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:700;`},["🗓 Create my daily planner →"]);
+  planB.onclick=()=>{S.step="planner";render();};
+  return div({style:`min-height:100vh;background:${Tv.bg};`},[
+    div({style:`background:${Tv.bgCard};border-bottom:1.5px solid ${Tv.borderSoft};padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;`},[backB,p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:11px;font-style:italic;flex:1;text-align:center;`},Tv.visionSub),editB]),
+    div({style:"max-width:900px;margin:0 auto;padding:40px 24px;"},[
+      div({style:"text-align:center;margin-bottom:40px;"},[
+        p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-weight:600;font-size:10px;letter-spacing:0.22em;margin-bottom:12px;`},`${Tv.genderEmoji} ${S.name.toUpperCase()}'S VISION BOARD`),
+        h("h1",{style:`font-family:'Lora',serif;font-size:clamp(32px,5vw,52px);font-weight:700;color:${Tv.textDark};line-height:1.2;margin-bottom:16px;`},[Tv.visionTitle]),
+        statsEl,
+        div({style:`height:3px;max-width:200px;margin:0 auto;background:${Tv.band};border-radius:4px;`})
+      ]),
+      div({style:"display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;margin-bottom:40px;"},cards),
+      identEl,habitListEl,
+      div({style:"display:flex;gap:10px;justify-content:center;flex-wrap:wrap;"},[editB2,planB])
+    ])
+  ]);
+}
+
+// ── DAILY PLANNER ─────────────────────────────────────────────────────────────
+function plannerScreen(){
+  const Tv=T(),rg=readyGoals(),cc=CC();
+  const grouped=CATEGORIES.reduce((a,cat)=>{const gs=rg.filter(g=>g.cat.id===cat.id);if(gs.length)a.push({cat,goals:gs});return a;},[]);
+  const today=new Date().toLocaleDateString("en-GB",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  const q=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+  const backB=btn({style:`background:none;border:1.5px solid ${Tv.borderSoft};color:${Tv.textSoft};padding:9px 20px;border-radius:20px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:600;`},["← Back"]);
+  backB.onclick=()=>{S.step="summary";render();};
+  const printB=btn({style:`background:${Tv.grad};color:#fff;border:none;padding:10px 24px;border-radius:20px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:700;box-shadow:0 4px 14px ${Tv.accent}44;`},["🖨 Save / Print as PDF"]);
+  printB.onclick=()=>window.print();
+  const qP=p({style:`color:${Tv.textSoft};font-family:'Lora',serif;font-size:12px;font-style:italic;line-height:1.6;`},"");qP.textContent=`"${q.text}"`;
+  const habitRows=rg.map(g=>{
+    const c=cc[g.cat.id]||cc.custom;
+    return div({style:`display:flex;align-items:center;gap:12px;background:${c.bg};border:1.5px solid ${c.main}44;border-radius:12px;padding:11px 16px;`},[
+      div({style:`width:20px;height:20px;border-radius:6px;border:2px solid ${c.main};flex-shrink:0;background:${Tv.bgCard};`}),
+      div({style:"flex:1;min-width:0;"},[
+        p({style:`color:${Tv.textDark};font-family:'Lora',serif;font-size:13px;font-weight:600;margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;`},g.goal),
+        p({style:`color:${Tv.textSoft};font-family:'DM Sans',sans-serif;font-size:11px;`},g.habit)
+      ]),
+      div({style:"display:flex;gap:6px;align-items:center;flex-shrink:0;"},[
+        span({style:`background:${c.main}33;color:${c.text};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;`},`${g.cat.icon} ${g.cat.label}`),
+        g.duration?span({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;`},`⏱ ${g.duration}`):null
+      ])
+    ]);
+  });
+  const thead=h("thead",{},[h("tr",{},[
+    h("th",{style:`text-align:left;color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 8px;min-width:160px;`},["Habit"]),
+    ...DAYS.map(d=>h("th",{style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:4px 6px;text-align:center;width:38px;`},[d]))
+  ])]);
+  const tbody=h("tbody",{},[
+    ...rg.map(g=>{
+      const c=cc[g.cat.id]||cc.custom;
+      const nc=h("td",{style:"padding:5px 8px;"},[
+        p({style:`color:${Tv.textDark};font-family:'Lora',serif;font-size:12px;font-weight:600;margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;`},g.goal),
+        p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;`},g.frequency)
+      ]);
+      return h("tr",{},[nc,...DAYS.map(()=>h("td",{style:"text-align:center;padding:5px 4px;"},[div({style:`width:28px;height:28px;border-radius:8px;border:2px solid ${c.main}66;background:${c.bg};margin:0 auto;`})]))]);
+    })
+  ]);
+  const goalCards=grouped.map(({cat,goals})=>{
+    const c=cc[cat.id]||cc.custom;
+    return div({style:`background:${c.bg};border:1.5px solid ${c.main}44;border-radius:14px;padding:14px 16px;`},[
+      p({style:`color:${c.text};font-family:'DM Sans',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.06em;margin-bottom:8px;`},`${cat.icon} ${cat.label.toUpperCase()}`),
+      ...goals.map((g,gi)=>div({style:`display:flex;gap:7px;align-items:flex-start;margin-bottom:${gi<goals.length-1?"6px":"0"};`},[
+        div({style:`width:16px;height:16px;border-radius:5px;border:2px solid ${c.main};flex-shrink:0;margin-top:2px;background:${Tv.bgCard};`}),
+        p({style:`color:${Tv.textDark};font-family:'Lora',serif;font-size:12px;font-weight:600;line-height:1.4;`},g.goal)
+      ])),
+      goals[0]?.timeline?p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;margin-top:8px;`},`🗓 ${goals[0].timeline}`):null
+    ]);
+  });
+  const noteCards=["🌅 Morning intention","⭐ Today's 3 priorities","🌙 Evening reflection"].map(label=>
+    div({style:`background:${Tv.bgMuted};border:1.5px solid ${Tv.borderSoft};border-radius:12px;padding:12px 14px;`},[
+      p({style:`color:${Tv.textSoft};font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;margin-bottom:8px;`},label),
+      ...[0,1,2,3,4].map(()=>div({style:`height:1px;background:${Tv.borderSoft};margin-bottom:12px;`}))
+    ])
+  );
+  const footerQ=p({style:`color:${Tv.textFaint};font-family:'Lora',serif;font-size:12px;font-style:italic;`},"");footerQ.textContent=Tv.plannerFooter;
+  return div({style:`background:${Tv.bg};min-height:100vh;padding-bottom:40px;`},[
+    div({id:"planner-no-print",style:`background:${Tv.bgCard};border-bottom:1.5px solid ${Tv.borderSoft};padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;`},[
+      backB,
+      p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:12px;font-style:italic;`},"Screenshot or save as PDF using your browser’s print dialog ↓"),
+      printB
+    ]),
+    div({id:"planner-root",style:"max-width:780px;margin:28px auto 0;padding:0 20px;"},[
+      div({style:`height:6px;border-radius:6px 6px 0 0;background:${Tv.band};`}),
+      div({style:`background:${Tv.bgCard};border:1.5px solid ${Tv.borderSoft};border-top:none;border-radius:0 0 24px 24px;padding:32px 36px;box-shadow:0 8px 40px rgba(0,0,0,0.08);`},[
+        div({style:"display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;"},[
+          div({},[
+            p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.2em;margin-bottom:5px;`},Tv.plannerBadge),
+            h("h1",{style:`font-family:'Lora',serif;font-size:28px;font-weight:700;color:${Tv.textDark};line-height:1.2;`},[`${S.name}'s Blueprint`]),
+            p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:11px;margin-top:5px;`},today)
+          ]),
+          div({style:`background:${Tv.bgMuted};border:1.5px solid ${Tv.borderSoft};border-radius:14px;padding:12px 16px;max-width:260px;`},[qP,p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;margin-top:4px;`},`— ${q.author}`)])
+        ]),
+        div({style:`height:1.5px;background:linear-gradient(90deg,${Tv.borderSoft},transparent);margin-bottom:24px;`}),
+        p({style:`color:${Tv.textDark};font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.06em;margin-bottom:14px;`},"✦ TODAY'S HABITS & ACTIONS"),
+        div({style:"display:grid;gap:8px;margin-bottom:28px;"},habitRows),
+        p({style:`color:${Tv.textDark};font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.06em;margin-bottom:14px;`},"✦ WEEKLY HABIT TRACKER"),
+        div({style:"overflow-x:auto;margin-bottom:28px;"},[h("table",{style:"width:100%;border-collapse:separate;border-spacing:4px;"},[thead,tbody])]),
+        p({style:`color:${Tv.textDark};font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.06em;margin-bottom:14px;`},"✦ MY GOALS AT A GLANCE"),
+        div({style:"display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:28px;"},goalCards),
+        p({style:`color:${Tv.textDark};font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.06em;margin-bottom:12px;`},"✦ NOTES & REFLECTIONS"),
+        div({style:"display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:20px;"},noteCards),
+        div({style:`height:1.5px;background:linear-gradient(90deg,transparent,${Tv.borderSoft},transparent);margin-bottom:16px;`}),
+        div({style:"display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;"},[
+          footerQ,
+          p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;letter-spacing:0.1em;`},`${S.name.toUpperCase()} ✦ MY GROWTH BLUEPRINT`)
+        ])
+      ])
+    ])
+  ]);
+}
+
+// ── EXAMPLES DRAWER ───────────────────────────────────────────────────────────
+function exDrawer(){
+  const Tv=T();
+  const closeB=btn({style:`background:${Tv.bgMuted};border:none;color:${Tv.textSoft};padding:8px 16px;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;`},["Close ✕"]);
+  closeB.onclick=()=>{S.exDrawer=false;render();};
+  const cards=EXAMPLE_PEOPLE.map((person,pi)=>{
+    const b=btn({style:`width:100%;background:${Tv.bgCard};border:1.5px solid ${Tv.borderSoft};border-radius:16px;padding:18px 20px;cursor:pointer;text-align:left;transition:all 0.2s;`},[
+      div({style:"display:flex;align-items:center;gap:14px;"},[
+        span({style:`width:44px;height:44px;border-radius:50%;background:${Tv.grad};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;`},person.emoji),
+        div({style:"flex:1;"},[
+          p({style:`color:${Tv.textDark};font-family:'Lora',serif;font-size:16px;font-weight:700;margin-bottom:4px;`},person.name),
+          p({style:`color:${Tv.textSoft};font-family:'DM Sans',sans-serif;font-size:12px;line-height:1.5;`},person.tagline)
+        ]),
+        span({style:`color:${Tv.accent};font-size:18px;flex-shrink:0;`},"→")
+      ])
+    ]);
+    b.onmouseenter=()=>{b.style.borderColor=Tv.accent;b.style.boxShadow=`0 4px 20px ${Tv.accent}22`;};
+    b.onmouseleave=()=>{b.style.borderColor=Tv.borderSoft;b.style.boxShadow="none";};
+    b.onclick=()=>{S.exModal=pi;render();};
+    return b;
+  });
+  return div({style:"position:fixed;inset:0;background:rgba(20,20,20,0.55);backdrop-filter:blur(6px);z-index:1000;overflow-y:auto;padding:24px 16px;"},[
+    div({style:`max-width:560px;margin:0 auto;background:${Tv.bg};border-radius:24px;padding:32px 28px;box-shadow:0 20px 60px rgba(0,0,0,0.2);`},[
+      div({style:"display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"},[
+        div({},[
+          p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-weight:600;font-size:10px;letter-spacing:0.16em;margin-bottom:6px;`},"EXAMPLE BLUEPRINTS ✦ FICTIONAL CHARACTERS"),
+          h("h2",{style:`font-family:'Lora',serif;font-size:24px;font-weight:700;color:${Tv.textDark};`},["Meet the community"])
+        ]),
+        closeB
+      ]),
+      p({style:`color:${Tv.textSoft};font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.75;margin-bottom:24px;`},"Real goals look different for everyone. These examples show what honest, personal blueprints actually look like — choose anyone to see their full plan."),
+      div({style:"display:grid;gap:12px;"},cards)
+    ])
+  ]);
+}
+
+function exModal(person){
+  const Tv=T(),cc=CC();
+  const closeB=btn({style:`background:${Tv.bgMuted};border:none;color:${Tv.textSoft};padding:8px 16px;border-radius:20px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;flex-shrink:0;`},["Close ✕"]);
+  closeB.onclick=()=>{S.exModal=null;render();};
+  const ownB=btn({style:`width:100%;margin-top:16px;background:${Tv.grad};color:#fff;border:none;padding:15px;border-radius:14px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.06em;`},["Now build your own ✦"]);
+  ownB.onclick=()=>{S.exDrawer=false;S.exModal=null;render();};
+  const introP=p({style:`color:${Tv.textMid};font-size:14px;font-family:'Lora',serif;line-height:1.85;font-style:italic;`},"");introP.textContent=person.intro;
+  const goalCards=person.goals.map(g=>{
+    const c=cc[g.catId]||cc.custom;
+    const whyP=p({style:`color:${Tv.textSoft};font-size:13px;font-family:'Lora',serif;font-style:italic;line-height:1.75;margin-bottom:12px;border-left:3px solid ${c.main}66;padding-left:12px;`},"");whyP.textContent=`"${g.why}"`;
+    return div({style:`background:${Tv.bgCard};border:1.5px solid ${c.main}44;border-radius:16px;padding:20px;margin-bottom:12px;box-shadow:0 2px 10px ${c.main}14;`},[
+      div({style:"display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;"},[
+        span({style:"font-size:16px;"},g.icon),
+        span({style:`background:${c.bg};color:${c.text};font-family:'DM Sans',sans-serif;font-weight:700;font-size:10px;padding:3px 10px;border-radius:20px;`},g.category),
+        span({style:`background:${Tv.bgMuted};color:${Tv.textSoft};font-family:'DM Sans',sans-serif;font-size:10px;padding:3px 10px;border-radius:20px;`},g.timeline)
+      ]),
+      p({style:`font-family:'Lora',serif;font-size:17px;font-weight:700;color:${Tv.textDark};margin-bottom:8px;`},g.goal),
+      whyP,
+      g.rec?recBadge(g.rec):null,
+      div({style:`background:${Tv.bgMuted};border-radius:10px;padding:10px 14px;margin-top:12px;`},[
+        p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;margin-bottom:3px;`},"DAILY ACTION"),
+        p({style:`color:${Tv.textDark};font-size:13px;font-family:'Lora',serif;`},g.habit),
+        p({style:`color:${c.text};font-size:11px;font-family:'DM Sans',sans-serif;font-weight:600;margin-top:4px;`},`${g.duration} · ${g.frequency}`)
+      ]),
+      g.obstacle?p({style:`color:${Tv.textFaint};font-size:11px;font-family:'DM Sans',sans-serif;font-style:italic;margin-top:8px;`},`Obstacle: ${g.obstacle}`):null
+    ]);
+  });
+  const closingP=p({style:"color:#fff;font-family:'Lora',serif;font-size:17px;font-style:italic;margin-bottom:10px;"},"");closingP.textContent=`"${person.closingQuote}"`;
+  return div({style:"position:fixed;inset:0;background:rgba(20,20,20,0.55);backdrop-filter:blur(6px);z-index:1000;overflow-y:auto;padding:24px 16px;"},[
+    div({style:`max-width:640px;margin:0 auto;background:${Tv.bg};border-radius:24px;padding:32px 28px;box-shadow:0 20px 60px rgba(0,0,0,0.2);`},[
+      div({style:"display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;"},[
+        div({},[
+          p({style:`color:${Tv.textFaint};font-family:'DM Sans',sans-serif;font-weight:600;font-size:10px;letter-spacing:0.16em;margin-bottom:6px;`},"EXAMPLE BLUEPRINT ✦ FICTIONAL CHARACTER"),
+          h("h2",{style:`font-family:'Lora',serif;font-size:28px;font-weight:700;color:${Tv.textDark};`},[`Meet ${person.name}`]),
+          p({style:`color:${Tv.textSoft};font-family:'DM Sans',sans-serif;font-size:12px;margin-top:4px;font-style:italic;`},person.tagline)
+        ]),
+        closeB
+      ]),
+      div({style:`background:${Tv.bgMuted};border-radius:16px;padding:20px;margin-bottom:20px;`},[
+        div({style:"display:flex;gap:16px;"},[
+          span({style:`width:52px;height:52px;border-radius:50%;background:${Tv.grad};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;`},person.emoji),
+          div({},[introP,p({style:`color:${Tv.textFaint};font-size:12px;font-family:'DM Sans',sans-serif;margin-top:10px;`},`✦ ${person.closingNote}`)])
+        ])
+      ]),
+      ...goalCards,
+      div({style:`background:${Tv.grad};border-radius:16px;padding:24px;text-align:center;margin-top:8px;`},[closingP,p({style:"color:rgba(255,255,255,0.85);font-size:13px;font-family:'DM Sans',sans-serif;line-height:1.8;"},person.closingNote)]),
+      ownB
+    ])
+  ]);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
