@@ -398,7 +398,12 @@ function mkField(label,ph,val,cb){
   const inp=h("input",{type:"text",placeholder:ph,style:`width:100%;background:${Tv.bgCard};border:1.5px solid ${Tv.borderSoft};border-radius:12px;padding:11px 14px;color:${Tv.textDark};font-size:14px;font-family:'Lora',serif;box-sizing:border-box;transition:border-color 0.2s;`});
   inp.value=val;
   inp.onfocus=()=>inp.style.borderColor=Tv.accent;
-  inp.onblur=()=>inp.style.borderColor=Tv.borderSoft;
+  // ONLY render when the user taps outside the field
+  inp.onblur=()=>{
+    inp.style.borderColor=Tv.borderSoft;
+    setTimeout(() => render(), 150); 
+  };
+  // Silently update the data while typing without rendering
   inp.oninput=e=>cb(e.target.value);
   return div({},[
     h("label",{style:`display:block;color:${Tv.textSoft};font-size:11px;font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.04em;margin-bottom:7px;`},[label]),
@@ -608,7 +613,15 @@ function goalCard(g,cat,index,Tv){
   if(!open)return div({style:`background:${Tv.bgCard};border:1.5px solid ${Tv.borderSoft};border-radius:16px;margin-bottom:12px;overflow:hidden;`},[hdr]);
 
   const ta=h("textarea",{rows:"3",placeholder:"Don't just write the obvious answer. What's really driving this?",style:`width:100%;background:${Tv.bgCard};border:1.5px solid ${Tv.borderSoft};border-radius:12px;padding:11px 14px;color:${Tv.textDark};font-size:14px;font-family:'Lora',serif;box-sizing:border-box;resize:vertical;transition:border-color 0.2s;`});
-  ta.value=g.why||"";ta.onfocus=()=>ta.style.borderColor=Tv.accent;ta.onblur=()=>ta.style.borderColor=Tv.borderSoft;ta.oninput=e=>{g.why=e.target.value;render();};
+  ta.value=g.why||"";
+  ta.onfocus=()=>ta.style.borderColor=Tv.accent;
+  // Delay render on blur so clicks register
+  ta.onblur=()=>{
+    ta.style.borderColor=Tv.borderSoft;
+    setTimeout(() => render(), 150);
+  };
+  // Silently update while typing
+  ta.oninput=e=>{g.why=e.target.value;};
   const whyDiv=div({},[
     h("label",{style:`display:block;color:${Tv.textSoft};font-size:11px;font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.04em;margin-bottom:7px;`},["💛 Why does this matter to you? Be honest — the deeper the why, the stronger the pull"]),
     ta,
@@ -639,14 +652,15 @@ function goalCard(g,cat,index,Tv){
       ...cat.promptQuestions.map((q,qi)=>p({style:`color:${Tv.textMid};font-size:13px;font-family:'Lora',serif;line-height:1.75;font-style:italic;margin-bottom:${qi<cat.promptQuestions.length-1?"6px":"0"};`},`${qi+1}. ${q}`))
     ]),
     div({style:"display:grid;gap:16px;"},[
-      mkField("🎯 The goal",cat.goalExamples[0]?.goal||"What do you want to achieve?",g.goal||"",v=>{g.goal=v;render();}),
+      // Removed render() from all the callbacks below
+      mkField("🎯 The goal",cat.goalExamples[0]?.goal||"What do you want to achieve?",g.goal||"",v=>{g.goal=v;}),
       whyDiv,
       div({},[
         h("label",{style:`display:block;color:${Tv.textSoft};font-size:11px;font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.04em;margin-bottom:7px;`},["🗓 Timeline — when do you want to achieve this?"]),
         div({style:"display:flex;gap:8px;flex-wrap:wrap;"},tlBtns)
       ]),
       showRec&&rec?recBadge(rec):null,
-      mkField("⚡ Your specific daily or weekly habit",cat.goalExamples[0]?.habit||"What will you actually do?",g.habit||"",v=>{g.habit=v;render();}),
+      mkField("⚡ Your specific daily or weekly habit",cat.goalExamples[0]?.habit||"What will you actually do?",g.habit||"",v=>{g.habit=v;}),
       div({style:"display:grid;grid-template-columns:1fr 1fr;gap:10px;"},[
         mkField("⏱ Duration per session","e.g. 30 minutes",g.duration||"",v=>{g.duration=v;}),
         mkField("🔁 How often?","e.g. Daily / 3x per week",g.frequency||"",v=>{g.frequency=v;})
